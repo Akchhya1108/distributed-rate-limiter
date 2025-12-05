@@ -173,13 +173,38 @@ RateLimitConfig::per_minute(6000)
 RateLimitConfig::new(500, Duration::from_secs(30))
 ```
 
-## 📋 Project Roadmap
 
-- [x] Phase 1: Token Bucket Algorithm
-- [x] Phase 2: Redis Integration
-- [x] Phase 3: Multiple Algorithms (Token, Leaky, Fixed, Sliding)
-- [x] Phase 4: Prometheus Metrics & Monitoring
-- [ ] Phase 5: Load Testing & Benchmarks (FINAL)
+## 📊 Benchmarks & Performance
+
+### Running Benchmarks
+```bash
+# Run Criterion benchmarks
+cargo bench
+
+# Results saved to target/criterion/report/index.html
+
+# Run load tests
+cargo test --release -- --nocapture
+```
+
+### Performance Results
+
+See [results/BENCHMARKS.md](results/BENCHMARKS.md) for detailed benchmark results.
+
+**Summary**:
+- ⚡ **140,000+ req/s** throughput (in-memory)
+- 🚀 **<1ms P99 latency** for all algorithms
+- 📈 **Linear scaling** up to 100K req/s
+- 💾 **Low memory footprint** (<2MB for 100K config)
+
+### Algorithm Performance Comparison
+
+| Algorithm | Throughput | Latency | Memory | Best For |
+|-----------|------------|---------|---------|----------|
+| Token Bucket | 140K/s | 850µs | Low | General APIs |
+| Leaky Bucket | 136K/s | 900µs | Low | Streaming |
+| Fixed Window | **172K/s** ⚡ | **500µs** | Very Low | High traffic |
+| Sliding Window | 75K/s | 1.4ms | High | Accuracy |
 
 ## 🤝 Contributing
 
