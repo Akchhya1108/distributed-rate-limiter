@@ -47,3 +47,12 @@ pub trait RateLimiter: Send + Sync {
     /// Reset the rate limiter for a specific key
     fn reset(&mut self, key: &str);
 }
+
+/// Enum for selecting rate limiting algorithm
+#[derive(Debug, Clone, Copy)]
+pub enum AlgorithmType {
+    TokenBucket,
+    LeakyBucket,
+    FixedWindow,
+    SlidingWindow,
+}
