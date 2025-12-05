@@ -1,6 +1,6 @@
 [package]
 name = "distributed-rate-limiter"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 
 [dependencies]
@@ -12,6 +12,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 prometheus = "0.13"
 lazy_static = "1.4"
+actix-web = "4.4"
+actix-cors = "0.7"
+actix-files = "0.6"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
@@ -19,3 +22,7 @@ criterion = { version = "0.5", features = ["html_reports"] }
 [[bench]]
 name = "benchmark"
 harness = false
+
+[[bin]]
+name = "web-server"
+path = "src/server.rs"

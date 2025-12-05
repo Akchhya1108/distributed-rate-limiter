@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limiter Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 min-h-screen text-white">
+    
+    <!-- Header -->
+    <header class="bg-gray-800/50 backdrop-blur-lg border-b border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                        🚀 Distributed Rate Limiter
+                    </h1>
+                    <p class="text-gray-400 text-sm mt-1">Real-time monitoring & testing dashboard</p>
+                </div>
+                <div class="flex gap-4">
+                    <div class="text-right">
+                        <div class="text-sm text-gray-400">Status</div>
+                        <div class="text-green-400 font-semibold flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                            Online
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-gray-700 hover:border-blue-500 transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-400 text-sm">Total Requests</span>
+                    <span class="text-2xl">📊</span>
+                </div>
+                <div class="text-3xl font-bold" id="total-requests">0</div>
+            </div>
+            
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-gray-700 hover:border-green-500 transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-400 text-sm">Allowed</span>
+                    <span class="text-2xl">✅</span>
+                </div>
+                <div class="text-3xl font-bold text-green-400" id="allowed-requests">0</div>
+            </div>
+            
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-gray-700 hover:border-red-500 transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-400 text-sm">Blocked</span>
+                    <span class="text-2xl">❌</span>
+                </div>
+                <div class="text-3xl font-bold text-red-400" id="blocked-requests">0</div>
+            </div>
+            
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-gray-700 hover:border-purple-500 transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-400 text-sm">Allow Rate</span>
+                    <span class="text-2xl">📈</span>
+                </div>
+                <div class="text-3xl font-bold text-purple-400" id="allow-rate">0%</div>
+            </div>
+        </div>
+
+        <!-- Simulator Section -->
+        <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-8 border border-gray-700 mb-8">
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                🎮 Rate Limit Simulator
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Algorithm</label>
+                    <select id="algorithm" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none">
+                        <option value="token_bucket">Token Bucket</option>
+                        <option value="leaky_bucket">Leaky Bucket</option>
+                        <option value="fixed_window">Fixed Window</option>
+                        <option value="sliding_window">Sliding Window</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                        Max Requests: <span id="max-requests-value" class="text-blue-400 font-bold">10</span>
+                    </label>
+                    <input type="range" id="max-requests" min="5" max="100" value="10" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                        Window (seconds): <span id="window-value" class="text-blue-400 font-bold">1</span>
+                    </label>
+                    <input type="range" id="window" min="1" max="60" value="1" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                        Test Requests: <span id="test-requests-value" class="text-blue-400 font-bold">20</span>
+                    </label>
+                    <input type="range" id="test-requests" min="10" max="200" value="20" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                </div>
+            </div>
+            
+            <button id="run-test" 
+                    class="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-lg transition-all transform hover:scale-105">
+                🚀 Run Test
+            </button>
+            
+            <!-- Results -->
+            <div id="test-results" class="mt-6 hidden">
+                <div class="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4">Test Results</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <div class="text-sm text-gray-400">Allowed</div>
+                            <div class="text-2xl font-bold text-green-400" id="result-allowed">0</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-400">Blocked</div>
+                            <div class="text-2xl font-bold text-red-400" id="result-blocked">0</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-400">Duration</div>
+                            <div class="text-2xl font-bold text-blue-400" id="result-duration">0ms</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-400">Throughput</div>
+                            <div class="text-2xl font-bold text-purple-400" id="result-throughput">0/s</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-1" id="result-visualization"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-8 border border-gray-700">
+            <h2 class="text-2xl font-bold mb-6">📈 Request History</h2>
+            <canvas id="requestChart" height="80"></canvas>
+        </div>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
