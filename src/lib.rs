@@ -1,5 +1,6 @@
 pub mod algorithms;
 pub mod redis_limiter;
+pub mod metrics; 
 
 use std::time::Duration;
 use thiserror::Error;

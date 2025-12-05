@@ -1,23 +1,27 @@
-use distributed_rate_limiter::{RateLimiter, RateLimitConfig, AlgorithmType};
+use distributed_rate_limiter::{RateLimiter, RateLimitConfig};
 use distributed_rate_limiter::algorithms::*;
 use distributed_rate_limiter::redis_limiter::RedisRateLimiter;
-use std::time::Duration;
+use distributed_rate_limiter::metrics::{self, record_request};
+use std::time::{Duration, Instant};
 
 #[tokio::main]
 async fn main() {
-    println!("🚀 Distributed Rate Limiter - Phase 3");
+    // Initialize metrics
+    metrics::init_metrics();
+    
+    println!("🚀 Distributed Rate Limiter - Phase 4");
     println!("======================================\n");
     
     let config = RateLimitConfig::per_second(3);
     
-    println!("Testing all 4 rate limiting algorithms");
+    println!("Testing all 4 rate limiting algorithms WITH METRICS");
     println!("Config: 3 requests per second\n");
     
     // Test 1: Token Bucket
     println!("1️⃣  TOKEN BUCKET");
     println!("   (Tokens refill over time)");
     println!("   ----------------------------");
-    test_algorithm("Token Bucket", TokenBucket::new(config.clone())).await;
+    test_algorithm_with_metrics("Token Bucket", TokenBucket::new(config.clone())).await;
     
     println!("\n");
     
@@ -25,7 +29,7 @@ async fn main() {
     println!("2️⃣  LEAKY BUCKET");
     println!("   (Queue that leaks at constant rate)");
     println!("   ----------------------------");
-    test_algorithm("Leaky Bucket", LeakyBucket::new(config.clone())).await;
+    test_algorithm_with_metrics("Leaky Bucket", LeakyBucket::new(config.clone())).await;
     
     println!("\n");
     
@@ -33,7 +37,7 @@ async fn main() {
     println!("3️⃣  FIXED WINDOW");
     println!("   (Counter resets every window)");
     println!("   ----------------------------");
-    test_algorithm("Fixed Window", FixedWindow::new(config.clone())).await;
+    test_algorithm_with_metrics("Fixed Window", FixedWindow::new(config.clone())).await;
     
     println!("\n");
     
@@ -41,7 +45,7 @@ async fn main() {
     println!("4️⃣  SLIDING WINDOW");
     println!("   (Tracks exact timestamps)");
     println!("   ----------------------------");
-    test_algorithm("Sliding Window", SlidingWindow::new(config.clone())).await;
+    test_algorithm_with_metrics("Sliding Window", SlidingWindow::new(config.clone())).await;
     
     println!("\n");
     
@@ -52,17 +56,24 @@ async fn main() {
     test_redis().await;
     
     println!("\n");
-    println!("✨ Phase 3 Complete! All 4 algorithms implemented!");
-    println!("\n📊 Algorithm Comparison:");
-    println!("   • Token Bucket:    Best for smooth traffic, allows bursts");
-    println!("   • Leaky Bucket:    Smooths out bursts, constant output rate");
-    println!("   • Fixed Window:    Simple, but burst at window boundaries");
-    println!("   • Sliding Window:  Most accurate, higher memory usage");
+    println!("✨ Phase 4 Complete! Prometheus metrics integrated!");
+    
+    // Print metrics summary
+    metrics::print_metrics_summary();
+    
+    // Show how to access metrics
+    println!("\n🔍 Prometheus Metrics Format:");
+    println!("==============================");
+    let metrics_output = metrics::get_metrics();
+    println!("{}", metrics_output);
 }
 
-async fn test_algorithm<T: RateLimiter>(name: &str, mut limiter: T) {
+async fn test_algorithm_with_metrics<T: RateLimiter>(_name: &str, mut limiter: T) {
     for i in 1..=5 {
+        let start = Instant::now();
         let allowed = limiter.allow_request("user_test").unwrap();
+        record_request(allowed, start);
+        
         println!("   Request {}: {}", i, if allowed { "✅ ALLOWED" } else { "❌ BLOCKED" });
     }
     
@@ -70,7 +81,10 @@ async fn test_algorithm<T: RateLimiter>(name: &str, mut limiter: T) {
     tokio::time::sleep(Duration::from_secs(1)).await;
     
     for i in 1..=2 {
+        let start = Instant::now();
         let allowed = limiter.allow_request("user_test").unwrap();
+        record_request(allowed, start);
+        
         println!("   Request {}: {}", i, if allowed { "✅ ALLOWED" } else { "❌ BLOCKED" });
     }
 }
@@ -87,6 +101,8 @@ async fn test_redis() {
             for i in 1..=5 {
                 match limiter.allow_request("user_redis") {
                     Ok(allowed) => {
+                        let start = Instant::now();
+                        record_request(allowed, start);
                         println!("   Request {}: {}", i, if allowed { "✅ ALLOWED" } else { "❌ BLOCKED" });
                     }
                     Err(_) => {
