@@ -1,6 +1,6 @@
-use crate::{RateLimiter, RateLimitConfig, RateLimitError, Result};
+use crate::{RateLimiter, RateLimitConfig, Result};
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 #[derive(Debug)]
 struct BucketState {
@@ -69,6 +69,7 @@ impl RateLimiter for TokenBucket {
 mod tests {
     use super::*;
     use std::thread::sleep;
+    use std::time::Duration;
     
     #[test]
     fn test_token_bucket_allows_requests() {
