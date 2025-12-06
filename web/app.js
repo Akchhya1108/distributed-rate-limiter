@@ -1,33 +1,49 @@
-// Initialize Chart
+// Initialize Chart with proper data structure
 const ctx = document.getElementById('requestChart').getContext('2d');
+
+// Store historical data
+let historicalData = {
+    timestamps: [],
+    allowed: [],
+    blocked: []
+};
+
 const chart = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: [],
+        labels: historicalData.timestamps,
         datasets: [
             {
                 label: 'Allowed',
-                data: [],
+                data: historicalData.allowed,
                 borderColor: 'rgb(74, 222, 128)',
                 backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                tension: 0.4
+                tension: 0.4,
+                fill: true
             },
             {
                 label: 'Blocked',
-                data: [],
+                data: historicalData.blocked,
                 borderColor: 'rgb(248, 113, 113)',
                 backgroundColor: 'rgba(248, 113, 113, 0.1)',
-                tension: 0.4
+                tension: 0.4,
+                fill: true
             }
         ]
     },
     options: {
         responsive: true,
         maintainAspectRatio: true,
+        animation: {
+            duration: 750
+        },
         plugins: {
             legend: {
                 labels: {
-                    color: 'rgb(156, 163, 175)'
+                    color: 'rgb(156, 163, 175)',
+                    font: {
+                        size: 14
+                    }
                 }
             }
         },
@@ -43,7 +59,9 @@ const chart = new Chart(ctx, {
             },
             x: {
                 ticks: {
-                    color: 'rgb(156, 163, 175)'
+                    color: 'rgb(156, 163, 175)',
+                    maxRotation: 45,
+                    minRotation: 45
                 },
                 grid: {
                     color: 'rgba(75, 85, 99, 0.3)'
@@ -66,31 +84,50 @@ document.getElementById('test-requests').addEventListener('input', (e) => {
     document.getElementById('test-requests-value').textContent = e.target.value;
 });
 
-// Fetch metrics
+// Previous metrics for calculating deltas
+let previousMetrics = {
+    allowed: 0,
+    blocked: 0
+};
+
+// Fetch metrics and update chart
 async function fetchMetrics() {
     try {
-        const response = await fetch('http://localhost:3001/api/metrics');
+        const response = await fetch('http://localhost:3000/api/metrics');
         const data = await response.json();
         
+        // Update metric cards
         document.getElementById('total-requests').textContent = data.total.toLocaleString();
         document.getElementById('allowed-requests').textContent = data.allowed.toLocaleString();
         document.getElementById('blocked-requests').textContent = data.blocked.toLocaleString();
         document.getElementById('allow-rate').textContent = data.allow_rate.toFixed(1) + '%';
         
-        // Update chart
-        const now = new Date().toLocaleTimeString();
-        chart.data.labels.push(now);
-        chart.data.datasets[0].data.push(data.allowed);
-        chart.data.datasets[1].data.push(data.blocked);
+        // Calculate delta (new requests since last update)
+        const allowedDelta = data.allowed - previousMetrics.allowed;
+        const blockedDelta = data.blocked - previousMetrics.blocked;
         
-        // Keep only last 20 data points
-        if (chart.data.labels.length > 20) {
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
-            chart.data.datasets[1].data.shift();
+        // Only update chart if there are new requests
+        if (allowedDelta > 0 || blockedDelta > 0) {
+            const now = new Date().toLocaleTimeString();
+            
+            historicalData.timestamps.push(now);
+            historicalData.allowed.push(data.allowed);
+            historicalData.blocked.push(data.blocked);
+            
+            // Keep only last 20 data points
+            if (historicalData.timestamps.length > 20) {
+                historicalData.timestamps.shift();
+                historicalData.allowed.shift();
+                historicalData.blocked.shift();
+            }
+            
+            chart.update('none'); // Update without animation for smoother experience
         }
         
-        chart.update();
+        // Update previous metrics
+        previousMetrics.allowed = data.allowed;
+        previousMetrics.blocked = data.blocked;
+        
     } catch (error) {
         console.error('Failed to fetch metrics:', error);
     }
@@ -110,7 +147,7 @@ document.getElementById('run-test').addEventListener('click', async () => {
     };
     
     try {
-        const response = await fetch('http://localhost:3001/api/test', {
+        const response = await fetch('http://localhost:3000/api/test', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -125,20 +162,20 @@ document.getElementById('run-test').addEventListener('click', async () => {
         document.getElementById('result-allowed').textContent = results.allowed;
         document.getElementById('result-blocked').textContent = results.blocked;
         document.getElementById('result-duration').textContent = results.duration_ms.toFixed(2) + 'ms';
-        document.getElementById('result-throughput').textContent = results.requests_per_sec.toFixed(0) + '/s';
+        document.getElementById('result-throughput').textContent = Math.round(results.requests_per_sec).toLocaleString() + '/s';
         
         // Visualize results
         const viz = document.getElementById('result-visualization');
         viz.innerHTML = '';
         results.results.forEach((allowed, i) => {
             const dot = document.createElement('div');
-            dot.className = `w-3 h-3 rounded-full ${allowed ? 'bg-green-400' : 'bg-red-400'}`;
+            dot.className = `w-3 h-3 rounded-full ${allowed ? 'bg-green-400' : 'bg-red-400'} transition-all hover:scale-150`;
             dot.title = `Request ${i + 1}: ${allowed ? 'Allowed' : 'Blocked'}`;
             viz.appendChild(dot);
         });
         
-        // Fetch updated metrics
-        fetchMetrics();
+        // Fetch updated metrics immediately
+        await fetchMetrics();
         
     } catch (error) {
         console.error('Test failed:', error);
@@ -149,6 +186,10 @@ document.getElementById('run-test').addEventListener('click', async () => {
     }
 });
 
+// Initial fetch
+fetchMetrics();
+
 // Auto-refresh metrics every 2 seconds
 setInterval(fetchMetrics, 2000);
-fetchMetrics();
+
+console.log('✅ Dashboard loaded successfully!');
