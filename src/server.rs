@@ -75,14 +75,17 @@ async fn test_rate_limiter(req: web::Json<TestRequest>) -> Result<HttpResponse> 
         "token_bucket" => {
             let mut limiter = TokenBucket::new(config);
             for _ in 0..req.num_requests {
+                let req_start = Instant::now();
                 match limiter.allow_request("test_user") {
                     Ok(true) => {
                         allowed_count += 1;
                         results.push(true);
+                        metrics::record_request(true, req_start);
                     }
                     Ok(false) => {
                         blocked_count += 1;
                         results.push(false);
+                        metrics::record_request(false, req_start);
                     }
                     Err(_) => {}
                 }
@@ -91,14 +94,17 @@ async fn test_rate_limiter(req: web::Json<TestRequest>) -> Result<HttpResponse> 
         "leaky_bucket" => {
             let mut limiter = LeakyBucket::new(config);
             for _ in 0..req.num_requests {
+                let req_start = Instant::now();
                 match limiter.allow_request("test_user") {
                     Ok(true) => {
                         allowed_count += 1;
                         results.push(true);
+                        metrics::record_request(true, req_start);
                     }
                     Ok(false) => {
                         blocked_count += 1;
                         results.push(false);
+                        metrics::record_request(false, req_start);
                     }
                     Err(_) => {}
                 }
@@ -107,14 +113,17 @@ async fn test_rate_limiter(req: web::Json<TestRequest>) -> Result<HttpResponse> 
         "fixed_window" => {
             let mut limiter = FixedWindow::new(config);
             for _ in 0..req.num_requests {
+                let req_start = Instant::now();
                 match limiter.allow_request("test_user") {
                     Ok(true) => {
                         allowed_count += 1;
                         results.push(true);
+                        metrics::record_request(true, req_start);
                     }
                     Ok(false) => {
                         blocked_count += 1;
                         results.push(false);
+                        metrics::record_request(false, req_start);
                     }
                     Err(_) => {}
                 }
@@ -123,14 +132,17 @@ async fn test_rate_limiter(req: web::Json<TestRequest>) -> Result<HttpResponse> 
         "sliding_window" => {
             let mut limiter = SlidingWindow::new(config);
             for _ in 0..req.num_requests {
+                let req_start = Instant::now();
                 match limiter.allow_request("test_user") {
                     Ok(true) => {
                         allowed_count += 1;
                         results.push(true);
+                        metrics::record_request(true, req_start);
                     }
                     Ok(false) => {
                         blocked_count += 1;
                         results.push(false);
+                        metrics::record_request(false, req_start);
                     }
                     Err(_) => {}
                 }
