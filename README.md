@@ -53,11 +53,32 @@ Production-grade rate limiting infrastructure supporting multiple algorithms, di
 
 ## 🎮 Demo
 
-### Web Dashboard
+### Web Dashboard UI
 
-**Live interactive dashboard at http://localhost:3000**
+#### Request Flow + Rate Limiting View
+<p align="center">
+  <img src="docs/screenshots/Alg_1.png" width="45%" />
+  <img src="docs/screenshots/Alg_2.png" width="45%" />
+</p>
 
-![Dashboard Screenshot](docs/screenshots/dashboard.png)
+---
+
+### Metrics Monitoring (Prometheus)
+
+<p align="center">
+  <img src="docs/screenshots/Metrics_1.png" width="45%" />
+  <img src="docs/screenshots/Metrics_graph_1.png" width="45%" />
+</p>
+
+---
+
+### Algorithm Performance Comparison
+
+<p align="center">
+  <img src="docs/screenshots/Performance_Comp_Alg.png" width="70%" />
+</p>
+
+---
 
 ### Features:
 - 📊 Real-time metrics cards
@@ -158,4 +179,159 @@ Full benchmark results: [results/BENCHMARKS.md](results/BENCHMARKS.md)
 
 ---
 
-## 🏗️ Architecture
+## 💻 Usage Examples
+
+### Token Bucket (Recommended for Most APIs)
+```rust
+use distributed_rate_limiter::algorithms::TokenBucket;
+
+let config = RateLimitConfig::per_second(100);
+let mut limiter = TokenBucket::new(config);
+
+limiter.allow_request("user_123")?;
+```
+
+### Redis Distributed Mode
+```rust
+use distributed_rate_limiter::redis_limiter::RedisRateLimiter;
+
+let config = RateLimitConfig::per_second(1000);
+let mut limiter = RedisRateLimiter::new("redis://127.0.0.1/", config)?;
+
+// Works across multiple server instances
+limiter.allow_request("global_api_key")?;
+```
+
+### With Metrics
+```rust
+use distributed_rate_limiter::metrics::{self, record_request};
+
+metrics::init_metrics();
+
+let start = Instant::now();
+let allowed = limiter.allow_request("user")?;
+record_request(allowed, start);
+
+// Get Prometheus metrics
+println!("{}", metrics::get_metrics());
+```
+
+---
+
+## 🧪 Testing
+```bash
+# Unit tests
+cargo test
+
+# Integration tests
+cargo test --test '*'
+
+# Benchmarks
+cargo bench
+
+# Load tests
+cargo test --release -- --nocapture load_test
+```
+
+---
+
+## 📚 Documentation
+
+- [Algorithm Comparison](web/comparison.html) - Interactive comparison page
+- [Benchmark Results](results/BENCHMARKS.md) - Detailed performance data
+- [Demo Guide](docs/demo.md) - Step-by-step demo instructions
+- [API Documentation](https://docs.rs/distributed-rate-limiter) - Rust docs
+
+---
+
+## 🎯 Use Cases
+
+### Real-World Applications
+
+- **API Rate Limiting** - Prevent abuse, ensure fair usage (Stripe, GitHub)
+- **DDoS Protection** - Block excessive requests from single sources
+- **Resource Management** - Limit concurrent operations (database connections)
+- **MLOps Pipelines** - Rate limit model inference requests (OpenAI API)
+- **Microservices** - Control inter-service communication rates
+
+### Who Uses Rate Limiting?
+
+- 🔵 **Twitter**: 300 requests per 15-minute window
+- 🟢 **GitHub**: 5,000 requests per hour
+- 🔴 **Stripe**: Rate limits per API key
+- 🟡 **OpenAI**: Token-based rate limiting
+
+---
+
+## 🛠️ Tech Stack
+
+- **Rust** - Systems programming, memory safety
+- **Redis** - Distributed coordination
+- **Prometheus** - Metrics and monitoring
+- **Actix-web** - HTTP server
+- **Tailwind CSS** - Modern UI styling
+- **Chart.js** - Data visualization
+
+---
+
+## 📈 Project Roadmap
+
+- [x] Phase 1: Token Bucket Algorithm
+- [x] Phase 2: Redis Integration
+- [x] Phase 3: Multiple Algorithms (4 total)
+- [x] Phase 4: Prometheus Metrics
+- [x] Phase 5: Load Testing & Benchmarks
+- [x] Phase 6: Web Dashboard
+- [x] Phase 7: Documentation & Polish
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! This project demonstrates distributed systems concepts and production-ready infrastructure patterns.
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing`)
+5. Open Pull Request
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+---
+
+## 👨‍💻 Author
+
+**Akchhya Singh**
+
+- GitHub: [@Akchhya1108](https://github.com/Akchhya1108)
+- LinkedIn: [akchhya-singh11](https://linkedin.com/in/akchhya-singh11)
+- Email: akchhya1108@gmail.com
+
+---
+
+## ⭐ Show Your Support
+
+Give a ⭐️ if this project helped you!
+
+---
+
+## 🙏 Acknowledgments
+
+- Inspired by production rate limiters at Cloudflare, Kong, and AWS
+- Built with 💙 for the Red Hat OpenShift AI internship application
+- Thanks to the Rust community for amazing tools and libraries
+
+---
+
+<div align="center">
+
+**Built with ❤️ in Rust**
+
+[⬆ Back to Top](#-distributed-rate-limiter)
+
+</div>
