@@ -69,7 +69,7 @@ document.getElementById('test-requests').addEventListener('input', (e) => {
 // Fetch metrics
 async function fetchMetrics() {
     try {
-        const response = await fetch('http://localhost:8080/api/metrics');
+        const response = await fetch('http://localhost:3001/api/metrics');
         const data = await response.json();
         
         document.getElementById('total-requests').textContent = data.total.toLocaleString();
@@ -110,7 +110,7 @@ document.getElementById('run-test').addEventListener('click', async () => {
     };
     
     try {
-        const response = await fetch('http://localhost:8080/api/test', {
+        const response = await fetch('http://localhost:3001/api/test', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

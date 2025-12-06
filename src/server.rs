@@ -158,8 +158,8 @@ async fn main() -> std::io::Result<()> {
     metrics::init_metrics();
     
     println!("🚀 Starting Rate Limiter Web Dashboard");
-    println!("📊 Dashboard: http://localhost:8080");
-    println!("📈 Metrics API: http://localhost:8080/api/metrics");
+    println!("📊 Dashboard: http://localhost:3001");
+    println!("📈 Metrics API: http://localhost:3001/api/metrics");
     println!("\nPress Ctrl+C to stop\n");
     
     HttpServer::new(|| {
@@ -172,7 +172,7 @@ async fn main() -> std::io::Result<()> {
             .service(test_rate_limiter)
             .service(fs::Files::new("/", "web").index_file("index.html"))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", 3001))?
     .run()
     .await
 }
