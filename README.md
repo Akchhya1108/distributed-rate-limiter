@@ -274,18 +274,6 @@ cargo test --release -- --nocapture load_test
 
 ---
 
-## 📈 Project Roadmap
-
-- [x] Phase 1: Token Bucket Algorithm
-- [x] Phase 2: Redis Integration
-- [x] Phase 3: Multiple Algorithms (4 total)
-- [x] Phase 4: Prometheus Metrics
-- [x] Phase 5: Load Testing & Benchmarks
-- [x] Phase 6: Web Dashboard
-- [x] Phase 7: Documentation & Polish
-
----
-
 ## 🤝 Contributing
 
 Contributions welcome! This project demonstrates distributed systems concepts and production-ready infrastructure patterns.
@@ -323,7 +311,6 @@ Give a ⭐️ if this project helped you!
 ## 🙏 Acknowledgments
 
 - Inspired by production rate limiters at Cloudflare, Kong, and AWS
-- Built with 💙 for the Red Hat OpenShift AI internship application
 - Thanks to the Rust community for amazing tools and libraries
 
 ---
